@@ -31,16 +31,25 @@ cd tg-fitness-bot
 npm install
 ```
 
-3. Создай файл `config.js`:
-```javascript
-module.exports = {
-  TELEGRAM_BOT_TOKEN: 'your_bot_token',
-  OPENAI_API_KEY: 'your_openai_key',
-  ADMIN_IDS: [123456789] // ID администраторов
-};
+3. Создай файл `.env`:
+```bash
+# Скопируй env.example в .env
+cp env.example .env
 ```
 
-4. Запусти бота:
+4. Настрой переменные в `.env`:
+```bash
+# Telegram Bot Token (получи у @BotFather)
+BOT_TOKEN=1234567890:ABCdefGHIjklMNOpqrsTUVwxyz
+
+# OpenAI API Key (получи на https://platform.openai.com/api-keys)
+OPENAI_API_KEY=sk-1234567890abcdef1234567890abcdef1234567890abcdef
+
+# ID администраторов (необязательно)
+ADMIN_IDS=26757881,123456789
+```
+
+5. Запусти бота:
 ```bash
 node bot.js
 ```
@@ -68,6 +77,25 @@ node bot.js
 - Render
 - Fly.io
 - VPS (DigitalOcean, Linode)
+
+### Переменные окружения для деплоя
+
+При деплое на платформу добавь эти переменные:
+
+| Переменная | Описание | Где получить |
+|------------|----------|--------------|
+| `BOT_TOKEN` | Telegram Bot Token | @BotFather в Telegram |
+| `OPENAI_API_KEY` | OpenAI API Key | https://platform.openai.com/api-keys |
+| `ADMIN_IDS` | ID администраторов (опционально) | Через @userinfobot в Telegram |
+
+**Пример для Railway:**
+1. Создай проект на railway.app
+2. Подключи GitHub репозиторий
+3. В разделе "Variables" добавь:
+   - `BOT_TOKEN` = `1234567890:ABCdefGHIjklMNOpqrsTUVwxyz`
+   - `OPENAI_API_KEY` = `sk-1234567890abcdef1234567890abcdef1234567890abcdef`
+   - `ADMIN_IDS` = `26757881` (твой ID)
+4. Деплой запустится автоматически
 
 ## 📄 Лицензия
 
