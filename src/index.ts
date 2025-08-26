@@ -4,6 +4,7 @@ import express from "express";
 import bodyParser from "body-parser";
 import { mainKb } from "./keyboards";
 import { guardUser, isExpired, isMuted } from "./guards";
+import { ensureUser } from "./storage";
 import { startOnboarding, isOnboarding, handleOnboardingAnswer } from "./onboarding/runner";
 import { registerFood, registerFoodCallbacks } from "./features/food";
 import { registerReports } from "./features/reports";
@@ -13,8 +14,6 @@ import { initDB } from "./storage";
 
 const token = process.env.BOT_TOKEN!;
 const isProd = !!process.env.WEBHOOK_URL; // если задан WEBHOOK_URL — работаем по вебхуку
-
-
 
 // Инициализация и запуск
 async function startBot() {
@@ -45,9 +44,24 @@ async function startBot() {
         createUserJobs(bot, msg.chat.id);
       });
 
+      // Команда для сброса плана и запуска онбординга
+      bot.onText(/^\/clear$/, async (msg) => {
+        const u = await guardUser(msg.chat.id, msg.from);
+        // Сбрасываем план
+        await ensureUser(msg.chat.id, { 
+          plan_status: null, 
+          plan_start: null, 
+          plan_end: null, 
+          plan: undefined 
+        });
+        await bot.sendMessage(msg.chat.id, "План сброшен! Начинаем онбординг...");
+        startOnboarding(bot, msg.chat.id);
+      });
+
       // универсальный Guard (автоблок по окончании месяца)
       bot.on("message", async (msg) => {
         if (/^\/start$/.test(msg.text || "")) return;          // уже обработали
+        if (/^\/clear$/.test(msg.text || "")) return;          // уже обработали
         if (isOnboarding(msg.chat.id)) { await handleOnboardingAnswer(bot, msg); return; }
 
         const u = await guardUser(msg.chat.id, msg.from);
@@ -74,7 +88,7 @@ async function startBot() {
       await bot.setWebHook(fullUrl);
       console.log(`Webhook set to: ${fullUrl}`);
 
-      app.post(path, express.json(), (req, res) => {
+      app.post(path, express.json(), (req: any, res: any) => {
         bot.processUpdate(req.body);
         res.sendStatus(200);
       });
@@ -97,9 +111,24 @@ async function startBot() {
         createUserJobs(bot, msg.chat.id);
       });
 
+      // Команда для сброса плана и запуска онбординга
+      bot.onText(/^\/clear$/, async (msg) => {
+        const u = await guardUser(msg.chat.id, msg.from);
+        // Сбрасываем план
+        await ensureUser(msg.chat.id, { 
+          plan_status: null, 
+          plan_start: null, 
+          plan_end: null, 
+          plan: undefined 
+        });
+        await bot.sendMessage(msg.chat.id, "План сброшен! Начинаем онбординг...");
+        startOnboarding(bot, msg.chat.id);
+      });
+
       // универсальный Guard (автоблок по окончании месяца)
       bot.on("message", async (msg) => {
         if (/^\/start$/.test(msg.text || "")) return;          // уже обработали
+        if (/^\/clear$/.test(msg.text || "")) return;          // уже обработали
         if (isOnboarding(msg.chat.id)) { await handleOnboardingAnswer(bot, msg); return; }
 
         const u = await guardUser(msg.chat.id, msg.from);

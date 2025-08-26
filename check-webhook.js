@@ -36,6 +36,14 @@ function getWebhookInfo() {
           console.log(`   Последняя ошибка: ${result.result.last_error_date || 'нет'}`);
           console.log(`   Максимальные подключения: ${result.result.max_connections || 'не указано'}`);
           console.log(`   Разрешенные обновления: ${result.result.allowed_updates ? result.result.allowed_updates.join(', ') : 'все'}`);
+          
+          if (result.result.url) {
+            console.log('\n✅ Webhook установлен и активен!');
+            console.log('🌐 Бот должен работать в продакшене');
+          } else {
+            console.log('\n⚠️ Webhook не установлен');
+            console.log('🔧 Проверь Railway логи и переменные окружения');
+          }
         } else {
           console.error('❌ Ошибка при получении информации о webhook:', result);
         }
