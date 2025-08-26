@@ -1,7 +1,15 @@
 const TelegramBot = require('node-telegram-bot-api');
 const OpenAI = require('openai');
-const config = require('./config');
 const http = require('http');
+
+// Конфигурация из переменных окружения
+const config = {
+  TELEGRAM_BOT_TOKEN: process.env.BOT_TOKEN,
+  OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+  ADMIN_IDS: process.env.ADMIN_IDS 
+    ? process.env.ADMIN_IDS.split(',').map(id => parseInt(id.trim()))
+    : [26757881] // S M (@Stanis212) - дефолтный админ
+};
 
 // Health check server для Fly.io
 const server = http.createServer((req, res) => {

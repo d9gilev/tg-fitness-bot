@@ -11,6 +11,9 @@ RUN npm ci --only=production
 # Копируем исходный код
 COPY . .
 
+# Копируем config.example.js как config.js для совместимости
+RUN cp config.example.js config.js
+
 # Создаем пользователя для безопасности
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nodejs -u 1001
