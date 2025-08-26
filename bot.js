@@ -27,7 +27,14 @@ server.listen(process.env.PORT || 8080, () => {
 });
 
 // Инициализация бота
-const bot = new TelegramBot(config.TELEGRAM_BOT_TOKEN, { polling: true });
+const bot = new TelegramBot(config.TELEGRAM_BOT_TOKEN, { 
+  polling: true,
+  polling_options: {
+    timeout: 10,
+    limit: 100,
+    retryTimeout: 5000
+  }
+});
 
 // Инициализация OpenAI
 const openai = new OpenAI({
