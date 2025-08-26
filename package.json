@@ -10,20 +10,22 @@
     "watch": "nodemon --exec ts-node src/index.ts"
   },
   "dependencies": {
-    "node-telegram-bot-api": "^0.64.0",
-    "openai": "^4.20.1",
+    "body-parser": "^2.2.0",
+    "dayjs": "^1.11.11",
     "dotenv": "^16.3.1",
+    "express": "^5.1.0",
     "lowdb": "^6.1.1",
     "nanoid": "^5.0.7",
-    "dayjs": "^1.11.11",
-    "node-cron": "^3.0.3"
+    "node-cron": "^3.0.3",
+    "node-telegram-bot-api": "^0.64.0",
+    "openai": "^4.20.1"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1",
-    "typescript": "^5.0.0",
     "@types/node": "^20.0.0",
-    "ts-node": "^10.9.0",
     "@types/node-cron": "^3.0.0",
-    "@types/node-telegram-bot-api": "^0.64.10"
+    "@types/node-telegram-bot-api": "^0.64.10",
+    "nodemon": "^3.0.1",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
   }
 }

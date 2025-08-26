@@ -1,5 +1,7 @@
 import "dotenv/config";
 import TelegramBot from "node-telegram-bot-api";
+import express from "express";
+import bodyParser from "body-parser";
 import { mainKb } from "./keyboards";
 import { guardUser, isExpired, isMuted } from "./guards";
 import { startOnboarding, isOnboarding, handleOnboardingAnswer } from "./onboarding/runner";
@@ -9,7 +11,8 @@ import { registerPlan } from "./features/plan";
 import { createUserJobs } from "./scheduler";
 import { initDB } from "./storage";
 
-const bot = new TelegramBot(process.env.BOT_TOKEN!, { polling: { autoStart: false } });
+const token = process.env.BOT_TOKEN!;
+const isProd = !!process.env.WEBHOOK_URL; // если задан WEBHOOK_URL — работаем по вебхуку
 
 // /start
 bot.onText(/^\/start$/, async (msg)=>{
@@ -43,19 +46,47 @@ async function startBot() {
     await initDB();
     console.log("Database initialized successfully");
     
-    // safety: убедиться, что webhook точно снят
-    await fetch(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/deleteWebhook`);
-    console.log("Webhook deleted successfully");
-    
-    // регистрируем фичи
-    registerFood(bot);
-    registerFoodCallbacks(bot);
-    registerReports(bot);
-    registerPlan(bot);
-    
-    // запускаем polling ровно ОДИН раз
-    await bot.startPolling();
-    console.log("Bot started. Ctrl+C to stop.");
+    if (!isProd) {
+      // === DEV / локально ===
+      const bot = new TelegramBot(token, { polling: { autoStart: false } });
+      await fetch(`https://api.telegram.org/bot${token}/deleteWebhook`); // на всякий случай
+      
+      // регистрируем фичи
+      registerFood(bot);
+      registerFoodCallbacks(bot);
+      registerReports(bot);
+      registerPlan(bot);
+      
+      await bot.startPolling();
+      console.log("Bot running in POLLING (dev).");
+    } else {
+      // === PROD / Railway ===
+      const app = express();
+      app.use(bodyParser.json());
+
+      const bot = new TelegramBot(token, { webHook: { autoOpen: false } });
+      const path = `/bot${token}`;                       // секретный путь
+      const fullUrl = `${process.env.WEBHOOK_URL}${path}`;
+
+      // 1) снимаем polling-режим на стороне Telegram (если был)
+      // 2) настраиваем webhook
+      await bot.setWebHook(fullUrl);
+      console.log(`Webhook set to: ${fullUrl}`);
+
+      app.post(path, (req, res) => {
+        bot.processUpdate(req.body);
+        res.sendStatus(200);
+      });
+
+      // регистрируем фичи
+      registerFood(bot);
+      registerFoodCallbacks(bot);
+      registerReports(bot);
+      registerPlan(bot);
+
+      const PORT = Number(process.env.PORT) || 8080;
+      app.listen(PORT, () => console.log("Bot running in WEBHOOK (prod) on", PORT));
+    }
   } catch (error) {
     console.error("Failed to start bot:", error);
     process.exit(1);

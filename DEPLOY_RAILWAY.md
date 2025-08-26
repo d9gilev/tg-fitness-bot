@@ -31,6 +31,7 @@
 | `BOT_TOKEN` | `1234567890:ABCdefGHIjklMNOpqrsTUVwxyz` | Telegram Bot Token |
 | `OPENAI_API_KEY` | `sk-1234567890abcdef1234567890abcdef1234567890abcdef` | OpenAI API Key |
 | `ADMIN_IDS` | `26757881` | ID администраторов |
+| `WEBHOOK_URL` | `https://your-app.up.railway.app` | **Автоматически установится Railway** |
 
 ### 3. Настройка домена (опционально)
 
