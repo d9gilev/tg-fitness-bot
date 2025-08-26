@@ -9,7 +9,7 @@ import { registerPlan } from "./features/plan";
 import { createUserJobs } from "./scheduler";
 import { initDB } from "./storage";
 
-const bot = new TelegramBot(process.env.BOT_TOKEN!, { polling: true });
+const bot = new TelegramBot(process.env.BOT_TOKEN!, { polling: { autoStart: false } });
 
 // /start
 bot.onText(/^\/start$/, async (msg)=>{
@@ -43,12 +43,18 @@ async function startBot() {
     await initDB();
     console.log("Database initialized successfully");
     
+    // safety: убедиться, что webhook точно снят
+    await fetch(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/deleteWebhook`);
+    console.log("Webhook deleted successfully");
+    
     // регистрируем фичи
     registerFood(bot);
     registerFoodCallbacks(bot);
     registerReports(bot);
     registerPlan(bot);
     
+    // запускаем polling ровно ОДИН раз
+    await bot.startPolling();
     console.log("Bot started. Ctrl+C to stop.");
   } catch (error) {
     console.error("Failed to start bot:", error);

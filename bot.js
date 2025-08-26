@@ -28,7 +28,7 @@ server.listen(process.env.PORT || 8080, () => {
 
 // Инициализация бота
 const bot = new TelegramBot(config.TELEGRAM_BOT_TOKEN, { 
-  polling: true,
+  polling: { autoStart: false },
   polling_options: {
     timeout: 10,
     limit: 100,
@@ -310,4 +310,56 @@ bot.on('error', (error) => {
   console.error('Ошибка бота:', error);
 });
 
-console.log('🤖 Бот запущен и готов к работе!');
+// Запускаем бота
+(async () => {
+  try {
+    // safety: убедиться, что webhook точно снят
+    const https = require('https');
+    const deleteWebhook = () => {
+      return new Promise((resolve, reject) => {
+        const options = {
+          hostname: 'api.telegram.org',
+          port: 443,
+          path: `/bot${config.TELEGRAM_BOT_TOKEN}/deleteWebhook`,
+          method: 'GET'
+        };
+        
+        const req = https.request(options, (res) => {
+          let data = '';
+          res.on('data', chunk => data += chunk);
+          res.on('end', () => {
+            try {
+              const result = JSON.parse(data);
+              if (result.ok) {
+                console.log('✅ Webhook deleted successfully');
+                resolve();
+              } else {
+                console.log('⚠️ Webhook already deleted or error:', result);
+                resolve();
+              }
+            } catch (error) {
+              console.log('⚠️ Error parsing webhook response:', error.message);
+              resolve();
+            }
+          });
+        });
+        
+        req.on('error', (error) => {
+          console.log('⚠️ Error deleting webhook:', error.message);
+          resolve();
+        });
+        
+        req.end();
+      });
+    };
+    
+    await deleteWebhook();
+    
+    // запускаем polling ровно ОДИН раз
+    await bot.startPolling();
+    console.log('🤖 Бот запущен и готов к работе!');
+  } catch (error) {
+    console.error('❌ Ошибка запуска бота:', error);
+    process.exit(1);
+  }
+})();
