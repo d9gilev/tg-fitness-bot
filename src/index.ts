@@ -78,25 +78,27 @@ async function startBot() {
     } else {
       // === PROD / Railway ===
       const app = express();
-
       const bot = new TelegramBot(token, { webHook: { autoOpen: false } });
-      const path = `/bot${process.env.BOT_TOKEN}`;       // секретный путь
-      const fullUrl = `${process.env.WEBHOOK_URL}${path}`;
+      
+      const baseUrl = process.env.WEBHOOK_URL!; // https://tg-fitness-bot-app-production.up.railway.app
+      const path = `/bot${token}`;              // один и тот же в setWebHook и app.post
 
-      // 1) снимаем polling-режим на стороне Telegram (если был)
-      // 2) настраиваем webhook
-      await bot.setWebHook(fullUrl);
-      console.log(`Webhook set to: ${fullUrl}`);
+      app.use(express.json({ limit: "2mb" }));  // JSON-парсер ДО маршрутов
 
       app.get('/health', (req: any, res: any) => {
         res.json({ status: 'ok', timestamp: new Date().toISOString() });
       });
 
-      app.post(path, express.json(), (req: any, res: any) => {
+      await bot.setWebHook(`${baseUrl}${path}`);
+      console.log(`Webhook set to: ${baseUrl}${path}`);
+
+      app.post(path, (req: any, res: any) => {            // <-- именно такой же path
         console.log('📨 Получен webhook:', req.body);
         bot.processUpdate(req.body);
         res.sendStatus(200);
       });
+
+      app.get("/", (_req: any, res: any) => res.status(200).send("OK"));
 
       // регистрируем фичи
       registerFood(bot);
@@ -145,8 +147,9 @@ async function startBot() {
         }
       });
 
-      const PORT = Number(process.env.PORT) || 8080;
-      app.listen(PORT, () => console.log("Bot running in WEBHOOK (prod) on", PORT));
+      app.listen(Number(process.env.PORT || 8080), "0.0.0.0", () => {
+        console.log("WEBHOOK mode on", process.env.PORT || 8080);
+      });
     }
   } catch (error) {
     console.error("Failed to start bot:", error);
