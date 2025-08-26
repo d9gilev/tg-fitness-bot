@@ -88,7 +88,12 @@ async function startBot() {
       await bot.setWebHook(fullUrl);
       console.log(`Webhook set to: ${fullUrl}`);
 
+      app.get('/health', (req: any, res: any) => {
+        res.json({ status: 'ok', timestamp: new Date().toISOString() });
+      });
+
       app.post(path, express.json(), (req: any, res: any) => {
+        console.log('📨 Получен webhook:', req.body);
         bot.processUpdate(req.body);
         res.sendStatus(200);
       });
