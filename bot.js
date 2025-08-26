@@ -356,10 +356,9 @@ if (!isProd) {
 } else {
   // === PROD / Railway ===
   const app = express();
-  app.use(bodyParser.json());
 
   const bot = new TelegramBot(token, { webHook: { autoOpen: false } });
-  const path = `/bot${token}`;                       // секретный путь
+  const path = `/bot${process.env.BOT_TOKEN}`;       // секретный путь
   const fullUrl = `${process.env.WEBHOOK_URL}${path}`;
 
   // Health check endpoint
@@ -368,7 +367,7 @@ if (!isProd) {
   });
 
   // Webhook endpoint
-  app.post(path, (req, res) => {
+  app.post(path, express.json(), (req, res) => {
     bot.processUpdate(req.body);
     res.sendStatus(200);
   });
