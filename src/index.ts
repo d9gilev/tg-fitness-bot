@@ -14,31 +14,7 @@ import { initDB } from "./storage";
 const token = process.env.BOT_TOKEN!;
 const isProd = !!process.env.WEBHOOK_URL; // если задан WEBHOOK_URL — работаем по вебхуку
 
-// /start
-bot.onText(/^\/start$/, async (msg)=>{
-  const u = await guardUser(msg.chat.id, msg.from);
-  if(!u.plan_status){ // нет онбординга/плана — запускаем
-    startOnboarding(bot, msg.chat.id);
-  } else {
-    await bot.sendMessage(msg.chat.id, `Привет, ${u.preferred_name||u.first_name}!`, { reply_markup: mainKb });
-  }
-  // на всякий случай создадим джобы (если уже есть — просто ничего не будет)
-  createUserJobs(bot, msg.chat.id);
-});
 
-// универсальный Guard (автоблок по окончании месяца)
-bot.on("message", async (msg) => {
-  if(/^\/start$/.test(msg.text||"")) return;          // уже обработали
-  if(isOnboarding(msg.chat.id)){ await handleOnboardingAnswer(bot, msg); return; }
-
-  const u = await guardUser(msg.chat.id, msg.from);
-  if(isMuted(u)) return; // молчим
-  if(isExpired(u)){
-    return bot.sendMessage(msg.chat.id, "Месяц закончился. 💳 Продлить?", {
-      reply_markup: { inline_keyboard: [[{text:"Продлить", url:"https://t.me/your_payment_link"}]] }
-    });
-  }
-});
 
 // Инициализация и запуск
 async function startBot() {
@@ -56,6 +32,32 @@ async function startBot() {
       registerFoodCallbacks(bot);
       registerReports(bot);
       registerPlan(bot);
+      
+      // Обработка команды /start
+      bot.onText(/^\/start$/, async (msg) => {
+        const u = await guardUser(msg.chat.id, msg.from);
+        if (!u.plan_status) { // нет онбординга/плана — запускаем
+          startOnboarding(bot, msg.chat.id);
+        } else {
+          await bot.sendMessage(msg.chat.id, `Привет, ${u.preferred_name || u.first_name}!`, { reply_markup: mainKb });
+        }
+        // на всякий случай создадим джобы (если уже есть — просто ничего не будет)
+        createUserJobs(bot, msg.chat.id);
+      });
+
+      // универсальный Guard (автоблок по окончании месяца)
+      bot.on("message", async (msg) => {
+        if (/^\/start$/.test(msg.text || "")) return;          // уже обработали
+        if (isOnboarding(msg.chat.id)) { await handleOnboardingAnswer(bot, msg); return; }
+
+        const u = await guardUser(msg.chat.id, msg.from);
+        if (isMuted(u)) return; // молчим
+        if (isExpired(u)) {
+          return bot.sendMessage(msg.chat.id, "Месяц закончился. 💳 Продлить?", {
+            reply_markup: { inline_keyboard: [[{ text: "Продлить", url: "https://t.me/your_payment_link" }]] }
+          });
+        }
+      });
       
       await bot.startPolling();
       console.log("Bot running in POLLING (dev).");
@@ -82,6 +84,32 @@ async function startBot() {
       registerFoodCallbacks(bot);
       registerReports(bot);
       registerPlan(bot);
+      
+      // Обработка команды /start
+      bot.onText(/^\/start$/, async (msg) => {
+        const u = await guardUser(msg.chat.id, msg.from);
+        if (!u.plan_status) { // нет онбординга/плана — запускаем
+          startOnboarding(bot, msg.chat.id);
+        } else {
+          await bot.sendMessage(msg.chat.id, `Привет, ${u.preferred_name || u.first_name}!`, { reply_markup: mainKb });
+        }
+        // на всякий случай создадим джобы (если уже есть — просто ничего не будет)
+        createUserJobs(bot, msg.chat.id);
+      });
+
+      // универсальный Guard (автоблок по окончании месяца)
+      bot.on("message", async (msg) => {
+        if (/^\/start$/.test(msg.text || "")) return;          // уже обработали
+        if (isOnboarding(msg.chat.id)) { await handleOnboardingAnswer(bot, msg); return; }
+
+        const u = await guardUser(msg.chat.id, msg.from);
+        if (isMuted(u)) return; // молчим
+        if (isExpired(u)) {
+          return bot.sendMessage(msg.chat.id, "Месяц закончился. 💳 Продлить?", {
+            reply_markup: { inline_keyboard: [[{ text: "Продлить", url: "https://t.me/your_payment_link" }]] }
+          });
+        }
+      });
 
       const PORT = Number(process.env.PORT) || 8080;
       app.listen(PORT, () => console.log("Bot running in WEBHOOK (prod) on", PORT));
