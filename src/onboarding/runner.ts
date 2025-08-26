@@ -12,7 +12,9 @@ interface OnboardingState {
 const S: Record<number, OnboardingState> = {}; // состояние по chatId
 
 export function startOnboarding(bot:TelegramBot, chatId:number){
+  console.log(`🚀 Запускаем онбординг для ${chatId}`);
   S[chatId] = { block: ONBOARDING_FLOW.start, answers:{} };
+  console.log(`📝 Начальный блок: ${ONBOARDING_FLOW.start}`);
   sendBlock(bot, chatId);
 }
 
@@ -59,13 +61,23 @@ export async function handleOnboardingAnswer(bot:TelegramBot, msg:TelegramBot.Me
 }
 
 function sendBlock(bot:TelegramBot, chatId:number){
-  const st = S[chatId]; const block = ONBOARDING_FLOW.blocks[st.block];
-  if(block.infoHtml) bot.sendMessage(chatId, block.infoHtml, { parse_mode:"HTML" });
+  const st = S[chatId]; 
+  const block = ONBOARDING_FLOW.blocks[st.block];
+  console.log(`📋 Отправляем блок: ${st.block}`, block);
+  
+  if(block.infoHtml) {
+    console.log(`ℹ️ Отправляем infoHtml`);
+    bot.sendMessage(chatId, block.infoHtml, { parse_mode:"HTML" });
+  }
   if(block.questions?.length){ 
     const q = block.questions[st.qIndex||0]; 
+    console.log(`❓ Отправляем вопрос:`, q);
     if(q.prompt) bot.sendMessage(chatId, q.prompt, { parse_mode:"HTML" }); 
     return true; 
   }
-  if(block.cta) bot.sendMessage(chatId, block.cta.text);
+  if(block.cta) {
+    console.log(`🔘 Отправляем CTA`);
+    bot.sendMessage(chatId, block.cta.text);
+  }
   return true;
 }
